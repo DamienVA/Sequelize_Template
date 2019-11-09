@@ -45,7 +45,7 @@ module.exports = function(app) {
     res.json(deleted);
   });
 
-  // PUT route for updating todos.
+  // PUT route for updating todos
   // We can access the updated todo in req.body
   app.put('/api/todos', async (req, res) => {
     const updated = await db.Todo.update({
