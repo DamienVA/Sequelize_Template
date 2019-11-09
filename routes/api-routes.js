@@ -19,11 +19,14 @@ module.exports = function(app) {
   // POST route for saving a new todo.
   // We can create a todo using the data on req.body
   app.post('/api/todos', async (req, res) => {
-    const result = await db.Todo.create({
-      text: req.body.text,
-      complete: req.body.complete,
-    });
-    res.json({id: result.insertId});
+    try {
+      const result = await db.Todo.create({
+        text: req.body.text,
+      });
+      res.json({id: result.insertId});
+    } catch (error) {
+      res.json({error: {...error}});
+    }
   });
 
   // DELETE route for deleting todos.
@@ -48,12 +51,21 @@ module.exports = function(app) {
   // PUT route for updating todos
   // We can access the updated todo in req.body
   app.put('/api/todos', async (req, res) => {
+    const {id, text, complete} = req.body;
     const updated = await db.Todo.update({
-      text: req.body.text,
-      complete: req.body.complete,
+      text,
+      complete,
     }, {
       where: {
-        id: req.body.id,
+        id,
+      },
+      function(result) {
+        if (result.changedRows === 0) {
+          console.log('Invalid input. Must be between 1-140 characters.');
+          // If no rows were changed, then the ID must not exist, so 404
+          return res.status(204).end();
+        }
+        res.status(200).end();
       },
     });
     res.json(updated);
